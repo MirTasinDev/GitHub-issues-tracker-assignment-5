@@ -1,8 +1,8 @@
-// demo credentials
+
 const defaultUsername = "admin";
 const defaultPassword = "admin123";
 
-// login function
+// login
 function loginUser(event) {
 
     event.preventDefault();
@@ -14,7 +14,6 @@ function loginUser(event) {
 
         alert("Login Successful");
 
-        // dashboard page এ redirect
         window.location.href = "dashboard.html";
 
     } else {
@@ -30,14 +29,9 @@ const API_BASE = 'https://phi-lab-server.vercel.app/api/v1/lab';
 let allIssues = [];
 let currentFilter = 'all';
 
-// ========================
-// INIT
-// ========================
+
 window.addEventListener('DOMContentLoaded', loadAllIssues);
 
-// ========================
-// FETCH ALL ISSUES
-// ========================
 async function loadAllIssues() {
   showLoader(true);
   try {
@@ -54,9 +48,6 @@ async function loadAllIssues() {
   }
 }
 
-// ========================
-// FILTER
-// ========================
 function filterIssues(type) {
   currentFilter = type;
   updateTabStyles(type);
@@ -79,9 +70,7 @@ function updateTabStyles(active) {
   });
 }
 
-// ========================
-// SEARCH
-// ========================
+
 function searchIssues() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) { filterIssues(currentFilter); return; }
