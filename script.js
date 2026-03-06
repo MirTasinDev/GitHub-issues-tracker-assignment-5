@@ -86,9 +86,7 @@ function handleSearchKey(e) {
   if (e.key === 'Enter') searchIssues();
 }
 
-// ========================
-// RENDER CARDS
-// ========================
+
 function renderIssues(issues) {
   const container = document.getElementById('issueContainer');
   const noResults = document.getElementById('noResults');
@@ -148,9 +146,6 @@ function createCard(issue) {
   return div;
 }
 
-// ========================
-// MODAL
-// ========================
 async function openModal(id) {
   const modal = document.getElementById('modal');
   modal.classList.remove('hidden');
@@ -224,9 +219,6 @@ document.getElementById('modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
-// ========================
-// HELPERS
-// ========================
 function showLoader(show) {
   document.getElementById('loader').classList.toggle('hidden', !show);
   if (show) document.getElementById('issueContainer').innerHTML = '';
