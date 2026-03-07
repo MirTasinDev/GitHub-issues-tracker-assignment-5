@@ -11,3 +11,4 @@ filter(): Selects elements based on a condition and returns a new array.
 4️⃣ What is an arrow function?
 ANS: An arrow function is a shorter and modern way to write functions in JavaScript.
 5️⃣ What are template literals?
+ANS: Template literals are strings written using backticks that allow embedding variables or expressions using inside the string.
