@@ -25,248 +25,426 @@ function loginUser(event) {
 }
 // dashboard
 
-const API_BASE = 'https://phi-lab-server.vercel.app/api/v1/lab';
-let allIssues = [];
-let currentFilter = 'all';
+var API_BASE = "https://phi-lab-server.vercel.app/api/v1/lab";
 
+var allIssues = [];
+var currentFilter = "all";
 
-window.addEventListener('DOMContentLoaded', loadAllIssues);
-
-async function loadAllIssues() {
-  showLoader(true);
-  try {
-    const res = await fetch(`${API_BASE}/issues`);
-    const data = await res.json();
-    allIssues = data.data || data || [];
-    renderIssues(allIssues);
-  } catch (err) {
-    console.error('Error:', err);
-    document.getElementById('noResults').textContent = 'Failed to load issues.';
-    document.getElementById('noResults').classList.remove('hidden');
-  } finally {
-    showLoader(false);
-  }
+window.onload = function(){
+loadAllIssues();
 }
 
-function filterIssues(type) {
-  currentFilter = type;
-  updateTabStyles(type);
-  const filtered = type === 'all'
-    ? allIssues
-    : allIssues.filter(i => i.status?.toLowerCase() === type);
-  renderIssues(filtered);
+function loadAllIssues(){
+
+showLoader(true);
+
+fetch(API_BASE + "/issues")
+.then(function(res){
+return res.json();
+})
+.then(function(data){
+
+if(data.data){
+allIssues = data.data;
+}else{
+allIssues = data;
 }
 
-function updateTabStyles(active) {
-  ['all', 'open', 'closed'].forEach(key => {
-    const btn = document.getElementById(key + 'Btn');
-    if (key === active) {
-      btn.classList.add('tab-active');
-      btn.classList.remove('border-gray-200', 'text-gray-600');
-    } else {
-      btn.classList.remove('tab-active');
-      btn.classList.add('border-gray-200', 'text-gray-600');
-    }
-  });
+renderIssues(allIssues);
+
+})
+.catch(function(err){
+
+console.log(err);
+
+document.getElementById("noResults").innerText = "Failed to load issues";
+document.getElementById("noResults").classList.remove("hidden");
+
+})
+.finally(function(){
+showLoader(false);
+})
+
 }
 
+function filterIssues(type){
 
-function searchIssues() {
-  const q = document.getElementById('searchInput').value.trim();
-  if (!q) { filterIssues(currentFilter); return; }
-  showLoader(true);
-  fetch(`${API_BASE}/issues/search?q=${encodeURIComponent(q)}`)
-    .then(r => r.json())
-    .then(data => renderIssues(data.data || data || []))
-    .catch(console.error)
-    .finally(() => showLoader(false));
+currentFilter = type;
+
+updateTabStyles(type);
+
+var filtered = [];
+
+if(type == "all"){
+
+filtered = allIssues;
+
+}else{
+
+for(var i=0;i<allIssues.length;i++){
+
+var issue = allIssues[i];
+
+if(issue.status){
+
+if(issue.status.toLowerCase() == type){
+filtered.push(issue);
 }
 
-function handleSearchKey(e) {
-  if (e.key === 'Enter') searchIssues();
 }
 
-
-function renderIssues(issues) {
-  const container = document.getElementById('issueContainer');
-  const noResults = document.getElementById('noResults');
-  document.getElementById('issueCount').textContent = `${issues.length} Issues`;
-  container.innerHTML = '';
-
-  if (!issues.length) {
-    noResults.classList.remove('hidden');
-    return;
-  }
-  noResults.classList.add('hidden');
-  issues.forEach(issue => container.appendChild(createCard(issue)));
 }
 
-function createCard(issue) {
-  const isOpen = issue.status?.toLowerCase() === 'open';
-  const labels = getLabels(issue);
-  const date = formatDate(issue.created_at || issue.createdAt);
-
-  const div = document.createElement('div');
-  div.className = `issue-card bg-white rounded-xl shadow-sm ${isOpen ? 'card-open' : 'card-closed'} p-5 cursor-pointer`;
-  div.onclick = () => openModal(issue.id);
-
-  div.innerHTML = `
-    <div class="flex justify-between items-center mb-3">
-      <span class="${isOpen ? 'text-green-500' : 'text-purple-500'}">
-        ${isOpen
-          ? `<img src="./assets/Open-Status.png" class="w-5 h-5" alt="open">`
-          : `<img src="./assets/Closed- Status.png" class="w-5 h-5" alt="closed">`
-        }
-      </span>
-      <span class="${getPriorityClass(issue.priority)} text-xs font-semibold px-3 py-1 rounded-full">
-        ${(issue.priority || 'N/A').toUpperCase()}
-      </span>
-    </div>
-
-    <h3 class="font-semibold text-gray-800 text-sm mb-2 leading-snug line-clamp-2">
-      ${issue.title || 'Untitled Issue'}
-    </h3>
-
-    <p class="text-gray-500 text-xs mb-4 line-clamp-2 leading-relaxed">
-      ${issue.description || issue.body || 'No description available.'}
-    </p>
-
-    <div class="flex flex-wrap gap-1.5 mb-4">
-      <span class="bg-red-100 text-red-500 border border-red-200 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1"><img src="./assets/BugDroid.png" class="w-3.5 h-3.5" alt="bug"> BUG</span>
-      <span class="bg-orange-100 text-orange-500 border border-orange-200 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1"><img src="./assets/Lifebuoy.png" class="w-3.5 h-3.5" alt="help"> HELP WANTED</span>
-    </div>
-
-    <hr class="border-gray-100 mb-3">
-
-    <div class="flex flex-col gap-0.5 text-xs text-gray-400">
-      <span>#${issue.id} by <span class="text-gray-600 font-medium">${issue.author || issue.user?.login || 'unknown'}</span></span>
-      <span>${date}</span>
-    </div>
-  `;
-  return div;
 }
 
-async function openModal(id) {
-  const modal = document.getElementById('modal');
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-  document.getElementById('modalContent').innerHTML = `<div class="flex justify-center py-8"><div class="spinner"></div></div>`;
+renderIssues(filtered);
 
-  try {
-    const res = await fetch(`${API_BASE}/issue/${id}`);
-    const data = await res.json();
-    renderModal(data.data || data);
-  } catch {
-    document.getElementById('modalContent').innerHTML = `<p class="text-red-500 text-sm">Failed to load issue.</p>`;
-  }
 }
 
-function renderModal(issue) {
-  const isOpen = issue.status?.toLowerCase() === 'open';
-  const date = formatDate(issue.created_at || issue.createdAt);
-  const author = issue.author || issue.user?.login || 'Unknown';
-  const priority = (issue.priority || 'N/A').toUpperCase();
-  const priorityClass = getPriorityModalClass(issue.priority);
+function updateTabStyles(active){
 
-  document.getElementById('modalContent').innerHTML = `
-    <h2 class="font-bold text-gray-900 text-lg leading-snug mb-3 pr-6">${issue.title || 'Untitled'}</h2>
+var tabs = ["all","open","closed"];
 
-    <div class="flex flex-wrap items-center gap-2 mb-4 text-xs text-gray-500">
-      <span class="${isOpen ? 'bg-green-500' : 'bg-purple-500'} text-white px-2.5 py-1 rounded-full font-semibold">
-        ${isOpen ? 'Opened' : 'Closed'}
-      </span>
-      <span>• Opened by <span class="font-medium text-gray-700">${author}</span></span>
-      <span>• ${date}</span>
-    </div>
+for(var i=0;i<tabs.length;i++){
 
-    <div class="flex flex-wrap gap-1.5 mb-4">
-      <span class="bg-red-100 text-red-500 border border-red-200 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
-        <img src="./assets/BugDroid.png" class="w-3.5 h-3.5" alt="bug"> BUG
-      </span>
-      <span class="bg-orange-100 text-orange-500 border border-orange-200 text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
-        <img src="./assets/Lifebuoy.png" class="w-3.5 h-3.5" alt="help"> HELP WANTED
-      </span>
-    </div>
+var key = tabs[i];
+var btn = document.getElementById(key + "Btn");
 
-    <p class="text-sm text-gray-600 leading-relaxed mb-5">${issue.description || issue.body || 'No description available.'}</p>
+if(key == active){
 
-    <div class="bg-gray-50 rounded-lg p-4 flex gap-10 mb-5">
-      <div>
-        <p class="text-xs text-gray-400 mb-1">Assignee:</p>
-        <p class="text-sm font-semibold text-gray-800">${author}</p>
-      </div>
-      <div>
-        <p class="text-xs text-gray-400 mb-1">Priority:</p>
-        <span class="${priorityClass} text-xs font-semibold px-3 py-1 rounded-full">${priority}</span>
-      </div>
-    </div>
+btn.classList.add("tab-active");
+btn.classList.remove("border-gray-200","text-gray-600");
 
-    <div class="flex justify-end">
-      <button onclick="closeModal()" class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-6 py-2 rounded-lg transition">
-        Close
-      </button>
-    </div>
-  `;
+}else{
+
+btn.classList.remove("tab-active");
+btn.classList.add("border-gray-200","text-gray-600");
+
 }
 
-function closeModal() {
-  const modal = document.getElementById('modal');
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
 }
 
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
-function showLoader(show) {
-  document.getElementById('loader').classList.toggle('hidden', !show);
-  if (show) document.getElementById('issueContainer').innerHTML = '';
 }
 
-function getPriorityModalClass(p) {
-  const v = p?.toLowerCase();
-  if (v === 'high')   return 'bg-red-500 text-white';
-  if (v === 'medium') return 'bg-yellow-400 text-white';
-  if (v === 'low')    return 'bg-green-500 text-white';
-  return 'bg-gray-200 text-gray-600';
+function searchIssues(){
+
+var q = document.getElementById("searchInput").value.trim();
+
+if(q == ""){
+filterIssues(currentFilter);
+return;
 }
 
-function getPriorityClass(p) {
-  const v = p?.toLowerCase();
-  if (v === 'high')   return 'priority-high';
-  if (v === 'medium') return 'priority-medium';
-  if (v === 'low')    return 'priority-low';
-  return 'bg-gray-100 text-gray-500';
+showLoader(true);
+
+fetch(API_BASE + "/issues/search?q=" + encodeURIComponent(q))
+.then(function(res){
+return res.json();
+})
+.then(function(data){
+
+var list;
+
+if(data.data){
+list = data.data;
+}else{
+list = data;
 }
 
-function getLabelClass(l) {
-  const v = l?.toLowerCase();
-  if (v?.includes('bug'))  return 'bg-red-100 text-red-500 border border-red-200';
-  if (v?.includes('help')) return 'bg-orange-100 text-orange-500 border border-orange-200';
-  if (v?.includes('feat')) return 'bg-blue-100 text-blue-500 border border-blue-200';
-  if (v?.includes('doc'))  return 'bg-purple-100 text-purple-500 border border-purple-200';
-  return 'bg-gray-100 text-gray-500 border border-gray-200';
+renderIssues(list);
+
+})
+.catch(function(err){
+console.log(err);
+})
+.finally(function(){
+showLoader(false);
+})
+
 }
 
-function getLabelIcon(l) {
-  const v = l?.toLowerCase();
-  if (v?.includes('bug'))  return '🐛';
-  if (v?.includes('help')) return '🤝';
-  if (v?.includes('feat')) return '✨';
-  if (v?.includes('doc'))  return '📄';
-  return '🏷️';
+function handleSearchKey(e){
+
+if(e.key == "Enter"){
+searchIssues();
 }
 
-function getLabels(issue) {
-  if (Array.isArray(issue.labels)) return issue.labels.map(l => typeof l === 'string' ? l : l.name);
-  if (typeof issue.labels === 'string') return [issue.labels];
-  if (issue.label) return [issue.label];
-  return [];
 }
 
-function formatDate(d) {
-  if (!d) return 'N/A';
-  const dt = new Date(d);
-  return isNaN(dt) ? d : dt.toLocaleDateString('en-US');
+function renderIssues(issues){
+
+var container = document.getElementById("issueContainer");
+var noResults = document.getElementById("noResults");
+
+container.innerHTML = "";
+
+document.getElementById("issueCount").innerText = issues.length + " Issues";
+
+if(issues.length == 0){
+
+noResults.classList.remove("hidden");
+return;
+
+}else{
+
+noResults.classList.add("hidden");
+
+}
+
+for(var i=0;i<issues.length;i++){
+
+var card = createCard(issues[i]);
+
+container.appendChild(card);
+
+}
+
+}
+
+function createCard(issue){
+
+var div = document.createElement("div");
+
+var isOpen = false;
+
+if(issue.status){
+if(issue.status.toLowerCase() == "open"){
+isOpen = true;
+}
+}
+
+var title = issue.title ? issue.title : "Untitled Issue";
+var desc = issue.description ? issue.description : issue.body;
+
+if(!desc){
+desc = "No description available.";
+}
+
+var author = issue.author;
+
+if(!author){
+if(issue.user && issue.user.login){
+author = issue.user.login;
+}else{
+author = "unknown";
+}
+}
+
+var priority = issue.priority ? issue.priority.toUpperCase() : "N/A";
+
+var date = formatDate(issue.created_at || issue.createdAt);
+
+div.className = "issue-card bg-white rounded-xl shadow-sm p-5 cursor-pointer";
+
+div.onclick = function(){
+openModal(issue.id);
+}
+
+div.innerHTML = `
+<div class="flex justify-between items-center mb-3">
+
+<span class="${isOpen ? 'text-green-500' : 'text-purple-500'}">
+${isOpen
+? `<img src="./assets/Open-Status.png" class="w-5 h-5">`
+: `<img src="./assets/Closed-Status.png" class="w-5 h-5">`
+}
+</span>
+
+<span class="${getPriorityClass(issue.priority)} text-xs font-semibold px-3 py-1 rounded-full">
+${priority}
+</span>
+
+</div>
+
+<h3 class="font-semibold text-gray-800 text-sm mb-2">${title}</h3>
+
+<p class="text-gray-500 text-xs mb-4">${desc}</p>
+
+<div class="flex flex-wrap gap-1.5 mb-4">
+
+<span class="bg-red-100 text-red-500 border border-red-200 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+<img src="./assets/BugDroid.png" class="w-3 h-3"> BUG
+</span>
+
+<span class="bg-orange-100 text-orange-500 border border-orange-200 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+<img src="./assets/Lifebuoy.png" class="w-3 h-3"> HELP WANTED
+</span>
+
+</div>
+
+<hr class="border-gray-100 mb-3">
+
+<div class="text-xs text-gray-400">
+
+<span>#${issue.id} by <span class="text-gray-600">${author}</span></span>
+
+<br>
+
+<span>${date}</span>
+
+</div>
+`;
+
+return div;
+
+}
+
+function openModal(id){
+
+var modal = document.getElementById("modal");
+
+modal.classList.remove("hidden");
+modal.classList.add("flex");
+
+document.getElementById("modalContent").innerHTML = "Loading...";
+
+fetch(API_BASE + "/issue/" + id)
+.then(function(res){
+return res.json();
+})
+.then(function(data){
+
+var issue;
+
+if(data.data){
+issue = data.data;
+}else{
+issue = data;
+}
+
+renderModal(issue);
+
+})
+.catch(function(){
+document.getElementById("modalContent").innerHTML = "Failed to load issue";
+})
+
+}
+
+function renderModal(issue){
+
+var isOpen = false;
+
+if(issue.status){
+if(issue.status.toLowerCase() == "open"){
+isOpen = true;
+}
+}
+
+var title = issue.title ? issue.title : "Untitled";
+var desc = issue.description ? issue.description : issue.body;
+
+if(!desc){
+desc = "No description available.";
+}
+
+var author = issue.author;
+
+if(!author){
+if(issue.user && issue.user.login){
+author = issue.user.login;
+}else{
+author = "Unknown";
+}
+}
+
+var date = formatDate(issue.created_at || issue.createdAt);
+
+var priority = issue.priority ? issue.priority.toUpperCase() : "N/A";
+
+var priorityClass = getPriorityModalClass(issue.priority);
+
+document.getElementById("modalContent").innerHTML = `
+<h2 class="font-bold text-lg mb-3">${title}</h2>
+
+<div class="text-xs text-gray-500 mb-4">
+
+<span class="${isOpen ? 'bg-green-500' : 'bg-purple-500'} text-white px-2 py-1 rounded">
+${isOpen ? "Opened" : "Closed"}
+</span>
+
+<span> • Opened by <b>${author}</b></span>
+
+<span> • ${date}</span>
+
+</div>
+
+<p class="text-sm text-gray-600 mb-4">${desc}</p>
+
+<div class="mb-4">
+
+<span class="${priorityClass} text-xs font-semibold px-3 py-1 rounded-full">
+${priority}
+</span>
+
+</div>
+
+<button onclick="closeModal()" class="bg-purple-600 text-white px-6 py-2 rounded-lg">
+Close
+</button>
+`;
+
+}
+
+function closeModal(){
+
+var modal = document.getElementById("modal");
+
+modal.classList.add("hidden");
+modal.classList.remove("flex");
+
+}
+
+function showLoader(show){
+
+var loader = document.getElementById("loader");
+
+if(show){
+loader.classList.remove("hidden");
+}else{
+loader.classList.add("hidden");
+}
+
+}
+
+function getPriorityModalClass(p){
+
+if(!p) return "bg-gray-200 text-gray-600";
+
+var v = p.toLowerCase();
+
+if(v == "high") return "bg-red-500 text-white";
+if(v == "medium") return "bg-yellow-400 text-white";
+if(v == "low") return "bg-green-500 text-white";
+
+return "bg-gray-200 text-gray-600";
+
+}
+
+function getPriorityClass(p){
+
+if(!p) return "bg-gray-100 text-gray-500";
+
+var v = p.toLowerCase();
+
+if(v == "high") return "priority-high";
+if(v == "medium") return "priority-medium";
+if(v == "low") return "priority-low";
+
+return "bg-gray-100 text-gray-500";
+
+}
+
+function formatDate(d){
+
+if(!d) return "N/A";
+
+var dt = new Date(d);
+
+if(isNaN(dt)){
+return d;
+}
+
+return dt.toLocaleDateString("en-US");
+
 }
