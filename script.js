@@ -25,10 +25,10 @@ function loginUser(event) {
 }
 // dashboard
 
-var API_BASE = "https://phi-lab-server.vercel.app/api/v1/lab";
+const API_BASE = "https://phi-lab-server.vercel.app/api/v1/lab";
 
-var allIssues = [];
-var currentFilter = "all";
+let allIssues = [];
+let currentFilter = "all";
 
 window.onload = function(){
 loadAllIssues();
@@ -73,7 +73,7 @@ currentFilter = type;
 
 updateTabStyles(type);
 
-var filtered = [];
+let filtered = [];
 
 if(type == "all"){
 
@@ -81,9 +81,9 @@ filtered = allIssues;
 
 }else{
 
-for(var i=0;i<allIssues.length;i++){
+for(let i=0;i<allIssues.length;i++){
 
-var issue = allIssues[i];
+let issue = allIssues[i];
 
 if(issue.status){
 
@@ -103,12 +103,12 @@ renderIssues(filtered);
 
 function updateTabStyles(active){
 
-var tabs = ["all","open","closed"];
+let tabs = ["all","open","closed"];
 
-for(var i=0;i<tabs.length;i++){
+for(let i=0;i<tabs.length;i++){
 
-var key = tabs[i];
-var btn = document.getElementById(key + "Btn");
+let key = tabs[i];
+let btn = document.getElementById(key + "Btn");
 
 if(key == active){
 
@@ -128,7 +128,7 @@ btn.classList.add("border-gray-200","text-gray-600");
 
 function searchIssues(){
 
-var q = document.getElementById("searchInput").value.trim();
+let q = document.getElementById("searchInput").value.trim();
 
 if(q == ""){
 filterIssues(currentFilter);
@@ -143,7 +143,7 @@ return res.json();
 })
 .then(function(data){
 
-var list;
+let list;
 
 if(data.data){
 list = data.data;
@@ -173,8 +173,8 @@ searchIssues();
 
 function renderIssues(issues){
 
-var container = document.getElementById("issueContainer");
-var noResults = document.getElementById("noResults");
+let container = document.getElementById("issueContainer");
+let noResults = document.getElementById("noResults");
 
 container.innerHTML = "";
 
@@ -191,9 +191,9 @@ noResults.classList.add("hidden");
 
 }
 
-for(var i=0;i<issues.length;i++){
+for(let i=0;i<issues.length;i++){
 
-var card = createCard(issues[i]);
+let card = createCard(issues[i]);
 
 container.appendChild(card);
 
@@ -203,9 +203,9 @@ container.appendChild(card);
 
 function createCard(issue){
 
-var div = document.createElement("div");
+let div = document.createElement("div");
 
-var isOpen = false;
+let isOpen = false;
 
 if(issue.status){
 if(issue.status.toLowerCase() == "open"){
@@ -213,14 +213,14 @@ isOpen = true;
 }
 }
 
-var title = issue.title ? issue.title : "Untitled Issue";
-var desc = issue.description ? issue.description : issue.body;
+let title = issue.title ? issue.title : "Untitled Issue";
+let desc = issue.description ? issue.description : issue.body;
 
 if(!desc){
 desc = "No description available.";
 }
 
-var author = issue.author;
+let author = issue.author;
 
 if(!author){
 if(issue.user && issue.user.login){
@@ -230,9 +230,9 @@ author = "unknown";
 }
 }
 
-var priority = issue.priority ? issue.priority.toUpperCase() : "N/A";
+let priority = issue.priority ? issue.priority.toUpperCase() : "N/A";
 
-var date = formatDate(issue.created_at || issue.createdAt);
+let date = formatDate(issue.created_at || issue.createdAt);
 
 div.className = "issue-card bg-white rounded-xl shadow-sm p-5 cursor-pointer";
 
@@ -291,7 +291,7 @@ return div;
 
 function openModal(id){
 
-var modal = document.getElementById("modal");
+let modal = document.getElementById("modal");
 
 modal.classList.remove("hidden");
 modal.classList.add("flex");
@@ -304,7 +304,7 @@ return res.json();
 })
 .then(function(data){
 
-var issue;
+let issue;
 
 if(data.data){
 issue = data.data;
@@ -323,7 +323,7 @@ document.getElementById("modalContent").innerHTML = "Failed to load issue";
 
 function renderModal(issue){
 
-var isOpen = false;
+let isOpen = false;
 
 if(issue.status){
 if(issue.status.toLowerCase() == "open"){
@@ -331,14 +331,14 @@ isOpen = true;
 }
 }
 
-var title = issue.title ? issue.title : "Untitled";
-var desc = issue.description ? issue.description : issue.body;
+let title = issue.title ? issue.title : "Untitled";
+let desc = issue.description ? issue.description : issue.body;
 
 if(!desc){
 desc = "No description available.";
 }
 
-var author = issue.author;
+let author = issue.author;
 
 if(!author){
 if(issue.user && issue.user.login){
@@ -348,11 +348,11 @@ author = "Unknown";
 }
 }
 
-var date = formatDate(issue.created_at || issue.createdAt);
+let date = formatDate(issue.created_at || issue.createdAt);
 
-var priority = issue.priority ? issue.priority.toUpperCase() : "N/A";
+let priority = issue.priority ? issue.priority.toUpperCase() : "N/A";
 
-var priorityClass = getPriorityModalClass(issue.priority);
+let priorityClass = getPriorityModalClass(issue.priority);
 
 document.getElementById("modalContent").innerHTML = `
 <h2 class="font-bold text-lg mb-3">${title}</h2>
@@ -388,7 +388,7 @@ Close
 
 function closeModal(){
 
-var modal = document.getElementById("modal");
+let modal = document.getElementById("modal");
 
 modal.classList.add("hidden");
 modal.classList.remove("flex");
@@ -397,7 +397,7 @@ modal.classList.remove("flex");
 
 function showLoader(show){
 
-var loader = document.getElementById("loader");
+let loader = document.getElementById("loader");
 
 if(show){
 loader.classList.remove("hidden");
@@ -411,7 +411,7 @@ function getPriorityModalClass(p){
 
 if(!p) return "bg-gray-200 text-gray-600";
 
-var v = p.toLowerCase();
+let v = p.toLowerCase();
 
 if(v == "high") return "bg-red-500 text-white";
 if(v == "medium") return "bg-yellow-400 text-white";
@@ -425,7 +425,7 @@ function getPriorityClass(p){
 
 if(!p) return "bg-gray-100 text-gray-500";
 
-var v = p.toLowerCase();
+let v = p.toLowerCase();
 
 if(v == "high") return "priority-high";
 if(v == "medium") return "priority-medium";
@@ -439,7 +439,7 @@ function formatDate(d){
 
 if(!d) return "N/A";
 
-var dt = new Date(d);
+let dt = new Date(d);
 
 if(isNaN(dt)){
 return d;
